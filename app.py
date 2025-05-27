@@ -54,16 +54,6 @@ if df is not None:
     nivel = st.selectbox("Filtrar por Nível", df['Nível'].unique())
     st.bar_chart(df[df['Nível'] == nivel]['Intervalo em Horas'].value_counts())
 
-# =============================================
-# CONFIGURAÇÃO DA PÁGINA
-# =============================================
-
-st.set_page_config(
-    page_title="Calculadora de Inspeções Aeronáuticas", 
-    layout="wide",
-    page_icon="✈️"
-)
-st.title("✈️ Calculadora de Inspeções Aeronáuticas")
 
 # =============================================
 # CARREGAMENTO DE DADOS
