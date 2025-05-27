@@ -9,9 +9,7 @@ st.set_page_config(
     page_icon="✈️"
 )
 
-st.set_page_config(page_title="Análise de Inspeções F-5", layout="wide")
-st.title("📊 Painel de Inspeções F-5")
-arquivo = st.file_uploader("Ou selecione o arquivo", type="xlsx", label_visibility="collapsed")
+
 # Autenticação simplificada (Streamlit Secrets)
 @st.cache_data
 def load_data():
