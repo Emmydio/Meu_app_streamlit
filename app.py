@@ -2,6 +2,7 @@ import pandas as pd
 import gspread
 from google.oauth2 import service_account
 import streamlit as st
+pip install gspread pandas google-auth
 
 # Configuração do Streamlit
 st.set_page_config(page_title="Análise de Inspeções F-5", layout="wide")
