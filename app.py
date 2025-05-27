@@ -14,6 +14,7 @@ def load_data():
         # Se usar Streamlit Secrets (recomendado para deploy)
         creds = service_account.Credentials.from_service_account_info(
             st.secrets["gcp_service_account"],
+            st.write(st.secrets["gcp_service_account"]),  # Mostra toda a estrutura,
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
         )
         gc = gspread.authorize(creds)
