@@ -3,7 +3,12 @@ import gspread
 from google.oauth2 import service_account
 import streamlit as st
 
-# Configuração do Streamlit
+st.set_page_config(
+    page_title="Calculadora de Inspeções Aeronáuticas",
+    layout="wide",
+    page_icon="✈️"
+)
+
 st.set_page_config(page_title="Análise de Inspeções F-5", layout="wide")
 st.title("📊 Painel de Inspeções F-5")
 arquivo = st.file_uploader("Ou selecione o arquivo", type="xlsx", label_visibility="collapsed")
