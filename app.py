@@ -1,52 +1,55 @@
 import pandas as pd
+import gspread
+from google.oauth2 import service_account
 import streamlit as st
-from datetime import datetime, timedelta
-import os
 
-# =============================================
-# FUNÇÕES AUXILIARES
-# =============================================
+# Configuração do Streamlit
+st.set_page_config(page_title="Análise de Inspeções F-5", layout="wide")
+st.title("📊 Painel de Inspeções F-5")
 
-def verificar_arquivo(caminho):
-    """Verifica se o arquivo existe e é válido"""
-    if not os.path.exists(caminho):
-        return False, "Arquivo não encontrado"
-    if not caminho.lower().endswith('.xlsx'):
-        return False, "Formato inválido (use .xlsx)"
-    return True, "OK"
-
-def sanitizar_dados(df):
-    """Converte colunas numéricas e remove linhas inválidas"""
+# Autenticação simplificada (Streamlit Secrets)
+@st.cache_data
+def load_data():
     try:
-        # Converter colunas críticas
-        if "Intervalo em Dias" in df.columns:
-            df["Intervalo em Dias"] = pd.to_numeric(df["Intervalo em Dias"], errors='coerce')
+        # Se usar Streamlit Secrets (recomendado para deploy)
+        creds = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=["https://www.googleapis.com/auth/spreadsheets"],
+        )
+        gc = gspread.authorize(creds)
+        
+        # Abrir planilha
+        sheet_url = st.secrets["sheet_url"]
+        spreadsheet = gc.open_by_url(sheet_url)
+        worksheet = spreadsheet.get_worksheet(0)
+        records = worksheet.get_all_records()
+        
+        # Processar dados
+        df = pd.DataFrame(records)
+        df['Intervalo em Horas'] = pd.to_numeric(df['Intervalo em Horas'], errors='coerce').fillna(0)
+        df['Intervalo em Dias'] = pd.to_numeric(df['Intervalo em Dias'], errors='coerce').fillna(0)
         return df
+    
     except Exception as e:
-        st.error(f"Erro na sanitização: {str(e)}")
-        return df
+        st.error(f"Erro ao carregar dados: {e}")
+        return None
 
-def carregar_dados_exemplo():
-    """Retorna dados de exemplo completos"""
-    return pd.DataFrame({
-        "Projeto": ["F-5"]*17 + ["F-16"]*15,
-        "Tipo de inspeção": [
-            "INSP 25FH", "INSP 50FH", "INSP 100FH", "INSP 150FH", "INSP 200FH",
-            "INSP 250FH", "INSP 300FH", "INSP 350FH", "INSP 400FH", "INSP 450FH",
-            "INSP 500FH", "INSP 550FH", "INSP 600FH", "INSP 650FH", "INSP 700FH",
-            "INSP 750FH", "INSP 800FH",
-            "F16-100H", "F16-200H", "F16-300H", "F16-400H", "F16-500H",
-            "F16-600H", "F16-700H", "F16-800H", "F16-900H", "F16-1000H",
-            "F16-1100H", "F16-1200H", "F16-1300H", "F16-1400H", "F16-1500H"
-        ],
-        "Nível": [chr(65+i) for i in range(17)] + [chr(65+i) for i in range(15)],
-        "Intervalo em Dias": [
-            25, 50, 100, 150, 200, 250, 300, 350, 400, 450, 
-            500, 550, 600, 650, 700, 750, 800,
-            100, 200, 300, 400, 500, 600, 700, 800, 900,
-            1000, 1100, 1200, 1300, 1400, 1500
-        ]
-    })
+# Carregar dados
+df = load_data()
+
+if df is not None:
+    # Mostrar dados
+    st.dataframe(df, use_container_width=True)
+    
+    # Métricas principais
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total de Inspeções", len(df))
+    col2.metric("Inspeções por Horas", len(df[df['Intervalo em Horas'] > 0]))
+    col3.metric("Inspeções por Dias", len(df[df['Intervalo em Dias'] > 0]))
+    
+    # Filtros interativos
+    nivel = st.selectbox("Filtrar por Nível", df['Nível'].unique())
+    st.bar_chart(df[df['Nível'] == nivel]['Intervalo em Horas'].value_counts())
 
 # =============================================
 # CONFIGURAÇÃO DA PÁGINA
